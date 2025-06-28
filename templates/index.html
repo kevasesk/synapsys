@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynapSys NLP Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    <div id="chat-container" class="flex flex-col h-screen max-w-2xl mx-auto">
+
+        <header class="p-4 shadow-md z-10">
+            <h1 class="text-xl font-bold text-center">SynapSys</h1>
+        </header>
+
+        <main id="dialog-area" class="flex-1 p-6 overflow-y-auto space-y-4">
+            <div class="flex justify-start">
+                <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
+                    <p class="text-sm">Welcome! Type a message below to start the conversation.</p>
+                </div>
+            </div>
+        </main>
+
+        <div id="typing-indicator" class="px-6 pb-2 hidden">
+             <div class="flex justify-start">
+                <div class="bg-gray-700 p-3 rounded-lg">
+                    <div class="flex items-center space-x-1">
+                        <span class="text-xs font-medium text-gray-400">Bot is typing</span>
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.1s;"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-gray-800 p-4">
+            <form id="chat-form" class="flex items-center space-x-4">
+                <textarea
+                    rows="3"
+                    id="user-input" 
+                    placeholder="Type your message here..." 
+                    autocomplete="off"
+                    class="flex-1 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                ></textarea>
+                <button 
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg transition-colors duration-300 flex items-center"
+                >
+                    <span>Send</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const dialogArea = document.getElementById('dialog-area');
+            const typingIndicator = document.getElementById('typing-indicator');
+
+            // --- Helper function to scroll to the bottom of the chat ---
+            const scrollToBottom = () => {
+                dialogArea.scrollTop = dialogArea.scrollHeight;
+            };
+            
+            // --- Helper function to create and append a message bubble ---
+            const appendMessage = (text, author) => {
+                const messageWrapper = document.createElement('div');
+                const messageBubble = document.createElement('div');
+                const messageText = document.createElement('p');
+
+                messageText.className = 'text-sm';
+                messageText.textContent = text;
+                messageBubble.appendChild(messageText);
+                messageWrapper.appendChild(messageBubble);
+
+                if (author === 'user') {
+                    // User message: align right
+                    messageWrapper.className = 'flex justify-end';
+                    messageBubble.className = 'bg-blue-600 p-3 rounded-lg max-w-xs';
+                } else {
+                    // Bot message: align left
+                    messageWrapper.className = 'flex justify-start';
+                    messageBubble.className = 'bg-gray-700 p-3 rounded-lg max-w-xs';
+                }
+
+                dialogArea.appendChild(messageWrapper);
+                scrollToBottom();
+            };
+
+            // --- Handle form submission ---
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent page reload
+                
+                const messageText = userInput.value.trim();
+                if (!messageText) {
+                    return; // Do nothing if input is empty
+                }
+
+                // 1. Display user's message immediately
+                appendMessage(messageText, 'user');
+                userInput.value = ''; // Clear the input field
+
+                // 2. Show typing indicator
+                typingIndicator.classList.remove('hidden');
+                scrollToBottom();
+
+                try {
+                    // 3. Send message to Flask backend
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: messageText }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // 4. Hide typing indicator and display bot's response
+                    typingIndicator.classList.add('hidden');
+                    appendMessage(data.answer, 'bot');
+
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // Hide indicator and show an error message in the chat
+                    typingIndicator.classList.add('hidden');
+                    appendMessage('Sorry, something went wrong. Please try again.', 'bot');
+                }
+            });
+            
+            // Initial scroll to bottom in case of pre-loaded content
+            scrollToBottom();
+        });
+    </script>
+
+</body>
+</html>
