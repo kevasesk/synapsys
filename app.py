@@ -9,7 +9,7 @@ def nlp_prediction(user_message):
     user_message = user_message.lower().strip()
     nlp_model = NLPModel()
     
-    return nlp_model.predict_message()
+    return nlp_model.predict_message(user_message)
 
 @app.route('/')
 def index():
