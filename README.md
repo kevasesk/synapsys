@@ -28,7 +28,7 @@ http://synapsys.website/
     *   **JavaScript:** For handling user interaction and API communication.
 *   **Machine Learning Model:**
     *   **BERT (Bidirectional Encoder Representations from Transformers):**  A powerful pre-trained model (`prajjwal1/bert-tiny`) is used to generate contextual embeddings from the input text.
-    *   **Logistic Regression:** A simple yet effective classification model is trained on top of the BERT embeddings to predict the sentiment.
+    *   **Logistic Regression:** A simple yet effective classification model is trained on top of the BERT embeddings to predict the sentiment and spam.
 
 ## How It Works
 
@@ -37,8 +37,9 @@ http://synapsys.website/
 3.  **Text Preprocessing:** The backend preprocesses the text (e.g., converting to lowercase).
 4.  **BERT Embeddings:** The pre-trained BERT model from Hugging Face tokenizes the text and generates a vector representation (embedding) that captures the semantic meaning of the text.
 5.  **Sentiment Prediction:** The trained Logistic Regression model takes the BERT embedding as input and predicts the sentiment (positive or negative). It also calculates the probabilities for each class.
-6.  **API Response:** The backend sends the prediction and probabilities back to the frontend as a JSON response.
-7.  **Display Results:** The frontend displays the model's prediction and the associated probabilities in the chat interface.
+6.  **Spam Prediction:** The trained Logistic Regression model takes the BERT embedding as input and predicts the spam. It also calculates the probabilities.
+7.  **API Response:** The backend sends the prediction and probabilities back to the frontend as a JSON response.
+8.  **Display Results:** The frontend displays the model's prediction and the associated probabilities in the chat interface.
 
 
 ## Setup and Installation
