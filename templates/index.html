@@ -72,24 +72,33 @@
             };
             
             // --- Helper function to create and append a message bubble ---
-            const appendMessage = (text, author) => {
+            const appendMessage = (data, author) => {
                 const messageWrapper = document.createElement('div');
                 const messageBubble = document.createElement('div');
                 const messageText = document.createElement('p');
+                let bgColor = ' bg-gray-700 ';
+                let answer = data.answer || data;
 
                 messageText.className = 'text-sm';
-                messageText.textContent = text;
+                messageText.textContent = answer;
                 messageBubble.appendChild(messageText);
                 messageWrapper.appendChild(messageBubble);
 
+                if (answer == 'negative') {
+                    bgColor = ' bg-red-700 ';
+                }
+
+                if (answer == 'positive') {
+                    bgColor = ' bg-green-700 ';
+                }
+
                 if (author === 'user') {
-                    // User message: align right
                     messageWrapper.className = 'flex justify-end';
                     messageBubble.className = 'bg-blue-600 p-3 rounded-lg max-w-xs';
                 } else {
-                    // Bot message: align left
                     messageWrapper.className = 'flex justify-start';
-                    messageBubble.className = 'bg-gray-700 p-3 rounded-lg max-w-xs';
+                    messageBubble.className = bgColor + 'p-3 rounded-lg max-w-xs';
+                    messageText.textContent += ` (negative: ${data.probability.negative} , positive: ${data.probability.positive})`;
                 }
 
                 dialogArea.appendChild(messageWrapper);
@@ -129,19 +138,16 @@
 
                     const data = await response.json();
                     
-                    // 4. Hide typing indicator and display bot's response
                     typingIndicator.classList.add('hidden');
-                    appendMessage(data.answer, 'bot');
+                    appendMessage(data, 'bot');
 
                 } catch (error) {
                     console.error('Fetch error:', error);
-                    // Hide indicator and show an error message in the chat
                     typingIndicator.classList.add('hidden');
                     appendMessage('Sorry, something went wrong. Please try again.', 'bot');
                 }
             });
-            
-            // Initial scroll to bottom in case of pre-loaded content
+        
             scrollToBottom();
         });
     </script>

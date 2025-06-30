@@ -1,3 +1,4 @@
+#pip install flask joblib kagglehub pandas numpy torch tensorflow-cpu transformers scikit-learn
 import os
 import joblib
 from flask import Flask, render_template, request, jsonify
@@ -29,9 +30,9 @@ def predict():
             return jsonify({'error': 'No message provided'}), 400
 
 
-        bot_response = nlp_prediction(user_message)
+        probability, bot_response = nlp_prediction(user_message)
 
-        return jsonify({'answer': bot_response})
+        return jsonify({'answer': bot_response, 'probability': probability})
 
     except Exception as e:
         print(f"An error occurred: {e}")

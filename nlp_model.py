@@ -8,12 +8,6 @@ from transformers import TFBertModel, BertTokenizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 
-try:
-    tf.config.set_visible_devices([], 'GPU')
-    print("GPU disabled. Running on CPU.")
-except:
-    print("Could not disable GPU. Proceeding with default settings.")
-
 
 MODEL_FILE = 'sentiment_analysys_model.pkl'
 SAMPLES_FOR_TRAIN = 1000
@@ -27,7 +21,6 @@ class NLPModel:
         # Initialize tokenizer and bert_model once to be reused
         self.tokenizer = BertTokenizer.from_pretrained('prajjwal1/bert-tiny')
         self.bert_model = TFBertModel.from_pretrained('prajjwal1/bert-tiny', from_pt=True)
-        #self.model = self.init_model()
         if os.path.exists(MODEL_FILE):
             self.model = joblib.load(MODEL_FILE)
         else:
@@ -76,7 +69,6 @@ class NLPModel:
 
         # 1. Preprocess the text (lowercase, remove special chars)
         processed_message = message.lower()
-        processed_message = processed_message.replace(r'[^a-zA-Z\s]', '')
 
         # 2. Tokenize the processed message. Note that it expects a list.
         tokenized_message = self._tokenize_text([processed_message])
@@ -84,6 +76,10 @@ class NLPModel:
         # 3. Get BERT embeddings
         outputs = self.bert_model(tokenized_message)
         message_embedding = outputs.last_hidden_state[:, 0, :].numpy()
+        probability_info = {
+            'negative': "{:.2%}".format(self.model.predict_proba(message_embedding)[0][0]),
+            'positive': "{:.2%}".format(self.model.predict_proba(message_embedding)[0][1]),
+        }
 
         # 4. Predict using the logistic regression model
-        return self.model.predict(message_embedding)[0]
+        return probability_info, self.model.predict(message_embedding)[0]
