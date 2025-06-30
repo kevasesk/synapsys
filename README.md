@@ -6,6 +6,8 @@ This project is a web-based application that performs sentiment analysis on user
 
 http://synapsys.website/
 
+![plot](./synapsys_demo.png)
+
 ## Features
 
 *   **Interactive Chat Interface:** A clean and simple chat interface to interact with the sentiment analysis model.
