@@ -1,4 +1,3 @@
-#pip install flask joblib kagglehub pandas numpy torch tensorflow-cpu transformers scikit-learn
 import os
 import joblib
 from flask import Flask, render_template, request, jsonify
