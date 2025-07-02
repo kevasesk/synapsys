@@ -1,0 +1,9 @@
+<div class="flex justify-start">
+    <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
+        <div class="text-sm">
+            <b>Sentiment:</b> {{ sentiment_data.message }} <br><small>(Positive: {{ sentiment_data.positive_proba }}, Negative: {{ sentiment_data.negative_proba }})</small>
+            <hr class="my-2 border-gray-500">
+            <b>Detection:</b> {{ spam_data.message }} <br><small>(Spam: {{ spam_data.spam_proba }}, Not Spam: {{ spam_data.not_spam_proba }})</small>
+        </div>
+    </div>
+</div>

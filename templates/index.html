@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SynapSys NLP Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='slider.js') }}"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans">
-    <div id="chat-container" class="flex flex-col h-screen container mx-auto">
-
-        <header class="p-4 shadow-md z-10 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-2 text-blue-400">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-            </svg>
-            <h1 class="text-xl font-bold">SynapSys</h1>
-        </header>
-
+    <div id="chat-container" class="flex flex-col h-screen container mx-auto" x-data="Chat()">
+        {% include 'header.html' %}
         {% include 'film-slider.html' %}
-
-        <main id="dialog-area" class="flex-1 p-6 overflow-y-auto space-y-4">
-            <div class="flex justify-start">
-                <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
-                    <p class="text-sm">Welcome! Choice a film for write a comment below. Bot will analyse this comment.</p>
+        
+        <main id="dialog-area" class="flex-1 p-6 overflow-y-auto space-y-4" x-ref="dialogArea">
+            <!-- Messages will be rendered here dynamically by Alpine.js -->
+            <template x-for="(message, index) in messages" :key="index">
+                <div :class="{ 'flex justify-end': message.type === 'user', 'flex justify-start': message.type === 'bot' }">
+                    <div :class="{ 'bg-blue-600': message.type === 'user', 'bg-gray-700': message.type === 'bot' }"
+                         class="p-3 rounded-lg max-w-xs">
+                        <p class="text-sm" x-html="message.text"></p>
+                    </div>
                 </div>
-            </div>
+            </template>
         </main>
 
-        <div id="typing-indicator" class="px-6 pb-2 hidden">
+        <!-- Typing indicator controlled by Alpine.js -->
+        <div id="typing-indicator" class="px-6 pb-2" x-show="isTyping" x-transition>
              <div class="flex justify-start">
                 <div class="bg-gray-700 p-3 rounded-lg">
                     <div class="flex items-center space-x-1">
@@ -40,14 +40,18 @@
             </div>
         </div>
 
+         <!-- Controlls for sending requests into NLP model -->
         <footer class="bg-gray-800 p-4">
-            <form id="chat-form" class="flex items-center space-x-4">
+            <form @submit.prevent="sendMessage" class="flex items-center space-x-4">
                 <textarea
                     rows="3"
+                    name="message"
                     id="user-input" 
                     placeholder="Type your message here..." 
                     autocomplete="off"
                     class="flex-1 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    x-model="messageInput"
+                    @keydown.enter.prevent="sendMessage"
                 ></textarea>
                 <button 
                     type="submit"
@@ -61,7 +65,5 @@
             </form>
         </footer>
     </div>
-
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
