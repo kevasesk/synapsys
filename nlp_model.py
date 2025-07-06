@@ -99,13 +99,13 @@ class NLPModel:
         outputs = self.bert_model(tokenized_message)
         return outputs.last_hidden_state[:, 0, :].numpy()
 
-    def predict_answer(self, message, mode):
+    def predict_answer(self, message, mode, filename=None):
         if mode == 'sentiment':
             return self.predict_sentiment(message)
         elif mode == 'spam':
             return self.predict_spam(message)
         elif mode == 'rag':
-            return self.predict_rag(message)
+            return self.predict_rag(message, filename)
 
         return None
 
@@ -131,7 +131,7 @@ class NLPModel:
             'Spam': "{:.2%}".format(predicted_result_proba[1]),
         }
     
-    def predict_rag(self, message):
+    def predict_rag(self, message, filename):
         return {
-            'message': 'yea',
+            'message': filename,
         }
