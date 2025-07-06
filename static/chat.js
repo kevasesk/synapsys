@@ -60,6 +60,7 @@ window.Chat = function () {
 
                 if (response.ok) {
                     this.uploadedFile = null;
+                    document.getElementById('file-upload').value = '';
                 } else {
                     alert('Failed to delete file from server.');
                 }
@@ -71,7 +72,7 @@ window.Chat = function () {
 
         sendMessage: async function() {
             const userMessage = this.messageInput.trim();
-            if (!userMessage) return;
+            if (!userMessage && !this.uploadedFile) return;
 
             this.messages.push({
                 type: 'user',

@@ -18,6 +18,10 @@ window.Slider = function () {
             }
         ],
         currentIndex: 0,
+        showSlider: true,
+        toggleSlider() {
+            this.showSlider = !this.showSlider;
+        },
         next() {
             this.currentIndex = (this.currentIndex + 1) % this.slides.length;
         },

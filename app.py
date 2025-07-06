@@ -1,13 +1,36 @@
 import os
-import joblib
 from flask import Flask, render_template, request, send_from_directory, render_template_string, jsonify
 from werkzeug.utils import secure_filename
-from nlp_model import NLPModel
+from services.sentiment_model import SentimentModel
+from services.spam_model import SpamModel
+from services.rag_model import RAGModel
+import logging
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+app.logger.debug('App is starting...')
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'csv'}
+
+models = {
+    "sentiment": None,
+    "spam": None,
+    "rag": None
+}
+
+def get_model(mode):
+    if models[mode] is None:
+        app.logger.debug(f"Loading model for mode: {mode}")
+        if mode == "sentiment":
+            models[mode] = SentimentModel()
+        elif mode == "spam":
+            models[mode] = SpamModel()
+        elif mode == "rag":
+            models[mode] = RAGModel()
+        app.logger.debug(f"Model for mode {mode} loaded.")
+    return models[mode]
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -51,10 +74,6 @@ def delete_file():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    This is the API endpoint for the NLP prediction.
-    It receives text from the user, processes it, and returns a response.
-    """
     try:
         user_message = request.form.get('message', '').lower().strip()
         mode = request.form.get('mode', 'sentiment').lower().strip()
@@ -63,8 +82,13 @@ def predict():
         if not user_message:
             return get_error_template('No message or file provided.')
 
-        nlp_model = NLPModel()
-        nlp_result = nlp_model.predict_answer(user_message, mode, filename)
+        model = get_model(mode)
+        nlp_result = None
+
+        if mode in ['sentiment', 'spam']:
+            nlp_result = model.predict(user_message)
+        elif mode == 'rag':
+            nlp_result = model.predict(user_message, filename)
 
         return render_template('bot_response.html', mode=mode.capitalize(), nlp_result=nlp_result)
 
@@ -81,7 +105,7 @@ def get_error_template(message):
             </div>
         </div>
         """
-    return render_template_string(error_template), 400
+    return render_template_string(error_template, message=message), 400
 
 
 @app.route('/films/<path:filename>')
