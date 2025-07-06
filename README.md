@@ -6,7 +6,17 @@ This project is a web-based application that performs sentiment analysis on user
 
 http://synapsys.website/
 
-![plot](./synapsys_demo.png)
+## Sentiment Analysys:
+
+![plot](./readme/sentiment.png)
+
+## Spam filter:
+
+![plot](./readme/spam.png)
+
+## RAG test with uploaded file as source data:
+
+![plot](./readme/rag.png)
 
 ## Features
 
