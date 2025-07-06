@@ -5,12 +5,20 @@ window.Chat = function () {
         ],
         messageInput: '',
         isTyping: false,
+        selectedMode: 'sentiment',
+
+        setMode: function(mode) {
+            this.selectedMode = mode;
+        },
 
         sendMessage: async function() {
             const userMessage = this.messageInput.trim();
             if (!userMessage) return;
 
-            this.messages.push({ type: 'user', text: userMessage });
+            this.messages.push({ 
+                type: 'user', 
+                text: userMessage
+            });
             this.messageInput = '';
             this.$nextTick(() => this.scrollToBottom());
 
@@ -20,10 +28,16 @@ window.Chat = function () {
                 const response = await fetch('/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ message: userMessage }).toString()
+                    body: new URLSearchParams({ 
+                        message: userMessage, 
+                        mode: this.selectedMode
+                    }).toString()
                 });
                 const botResponse = await response.text();
-                this.messages.push({ type: 'bot', text: botResponse });
+                this.messages.push({ 
+                    type: 'bot', 
+                    text: botResponse
+                });
 
             } finally {
                 this.isTyping = false;

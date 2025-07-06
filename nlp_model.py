@@ -91,34 +91,47 @@ class NLPModel:
     def _get_bert_embeddings(self, text_series):
         tokenized = self._tokenize_text(text_series.tolist())
         outputs = self.bert_model(tokenized)
-        # The embedding is the output of the [CLS] token
         return outputs.last_hidden_state[:, 0, :].numpy()
 
-    def predict_message(self, message):
-        """
-        Predicts the sentiment of a single message.
-        """
-
-        # 1. Preprocess the text (lowercase, remove special chars)
+    def _get_embedding_for_message(self, message):
         processed_message = message.lower()
-
-        # 2. Tokenize the processed message. Note that it expects a list.
         tokenized_message = self._tokenize_text([processed_message])
-        
-        # 3. Get BERT embeddings
         outputs = self.bert_model(tokenized_message)
-        message_embedding = outputs.last_hidden_state[:, 0, :].numpy()
-        
-        sentiment_data = {
-            'message': self.sentiment_model.predict(message_embedding)[0],
-            'negative_proba': "{:.2%}".format(self.sentiment_model.predict_proba(message_embedding)[0][0]),
-            'positive_proba': "{:.2%}".format(self.sentiment_model.predict_proba(message_embedding)[0][1]),
+        return outputs.last_hidden_state[:, 0, :].numpy()
+
+    def predict_answer(self, message, mode):
+        if mode == 'sentiment':
+            return self.predict_sentiment(message)
+        elif mode == 'spam':
+            return self.predict_spam(message)
+        elif mode == 'rag':
+            return self.predict_rag(message)
+
+        return None
+
+    def predict_sentiment(self, message):
+        message_embedding = self._get_embedding_for_message(message)
+        predicted_result = self.sentiment_model.predict(message_embedding)[0]
+        predicted_result_proba = self.sentiment_model.predict_proba(message_embedding)[0]
+
+        return {
+            'message': predicted_result,
+            'Negative': "{:.2%}".format(predicted_result_proba[0]),
+            'Positive': "{:.2%}".format(predicted_result_proba[1]),
         }
 
-        spam_data = {
-            'message': self.spam_model.predict(message_embedding)[0],
-            'not_spam_proba': "{:.2%}".format(self.spam_model.predict_proba(message_embedding)[0][0]),
-            'spam_proba': "{:.2%}".format(self.spam_model.predict_proba(message_embedding)[0][1]),
-        }
+    def predict_spam(self, message):
+        message_embedding = self._get_embedding_for_message(message)
+        predicted_result = self.spam_model.predict(message_embedding)[0]
+        predicted_result_proba = self.spam_model.predict_proba(message_embedding)[0]
 
-        return sentiment_data, spam_data
+        return {
+            'message': 'Not Spam' if predicted_result == 'ham' else 'Spam',
+            'Not Spam': "{:.2%}".format(predicted_result_proba[0]),
+            'Spam': "{:.2%}".format(predicted_result_proba[1]),
+        }
+    
+    def predict_rag(self, message):
+        return {
+            'message': 'yea',
+        }

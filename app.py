@@ -5,16 +5,6 @@ from nlp_model import NLPModel
 
 app = Flask(__name__)
 
-@app.route('/films/<path:filename>')
-def serve_film(filename):
-    return send_from_directory('films', filename)
-
-def nlp_prediction(user_message):
-    user_message = user_message.lower().strip()
-    nlp_model = NLPModel()
-    
-    return nlp_model.predict_message(user_message)
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -26,15 +16,19 @@ def predict():
     It receives text from the user, processes it, and returns a response.
     """
     try:
-        user_message = request.form.get('message')
+        user_message = request.form.get('message', '').lower().strip()
+        mode = request.form.get('mode', 'sentiment').lower().strip()
 
         if not user_message:
             return get_error_template('No message provided. Please enter a message to analyze.')
 
+        nlp_model = NLPModel()
+        nlp_result = nlp_model.predict_answer(user_message, mode)
 
-        sentiment_data, spam_data = nlp_prediction(user_message)
+        if not nlp_result:
+            return get_error_template('No such mode for')
 
-        return render_template('bot_response.html', sentiment_data=sentiment_data, spam_data=spam_data)
+        return render_template('bot_response.html', mode=mode.capitalize(), nlp_result=nlp_result)
 
     except Exception as e:
           return get_error_template(str(e))
@@ -50,6 +44,12 @@ def get_error_template(message):
         </div>
         """
     return render_template_string(error_template), 400
+
+
+@app.route('/films/<path:filename>')
+def serve_film(filename):
+    return send_from_directory('films', filename)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
